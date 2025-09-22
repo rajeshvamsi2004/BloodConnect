@@ -7,15 +7,20 @@ const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
 const Request = require('./models/Request');
 const Bloodbank = require('./models/Bloodbank');
-
+const corsOptions = {
+  origin: 'https://bloodconnect-2.onrender.com', // your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // allow cookies if needed
+};
 // Assuming bloodcamps model exists as it's used below
 // const bloodcamps = require('./models/Camp'); 
-const cors = require('cors');
+
 const mongoose = require('mongoose');
 const axios = require('axios');
 require('dotenv').config();
 
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const transporter = nodemailer.createTransport({
