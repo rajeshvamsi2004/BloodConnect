@@ -1,44 +1,82 @@
-import './App.css';
-import FrontPage from './FrontPage';
-import {BrowserRouter, Routes, Route} from 'react-router-dom'
-import Login from './Login';
-import SignUp from './SignUp';
-import Donor from './Donor';
-import ToastNotification from './ToastNotification';
-import Don from './Don'
-import Request from './Request'
-import Donorboard from './Donorboard';
-import Dash from './Dash';
-import Profile from './Profile';
-import Review from './Review';
-import Accepted from './Accepted';
-import Rejected from './Rejected';
-import Slide from './Slide'
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+// --- Context ---
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+// --- Page & Layout Components ---
+import LandingPage from './pages/LandingPage';
+import LoginRegister from './components/Auth/LoginRegister';
+import Dashboard from './pages/Dashboard'; // This is the layout for the protected area
+
+// --- Dashboard Page Components ---
+import Profile from './components/Dashboard/Profile';
+import DonorsList from './components/Dashboard/DonorsList';
+import IncomingRequests from './components/Dashboard/IncomingRequests';
+import AcceptedRequests from './components/Dashboard/AcceptedRequests';
+import RejectedRequests from './components/Dashboard/RejectedRequests';
+import MyRequests from './components/Dashboard/MyRequests';
+import DonorRegistrationForm from './components/Dashboard/DonorRegistrationForm';
+import BloodRequestForm from './components/Dashboard/BloodRequestForm';
+import MapComponent from './MapComponent';
+
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-     <Routes>
-       <Route path='/' element={<FrontPage/>}/>
-         <Route path='/login' element={<Login/>}/>
-         <Route path='/signup' element={<SignUp/>}/>
-         <Route path='/donorlogin' element={<Don/>}/>
-         <Route path='/request' element={<Request/>}/>
-         <Route path='/donor' element={<Donor/>}/>
-         <Route path='/toast' element={<ToastNotification/>}/>
-         <Route path='/board' element={<Donorboard/>}/>
-         <Route path='/box' element={<Dash/>}/>
-         <Route path='/slides' element={<Slide/>}/>
-         <Route path='/profile' element={<Profile/>}/>
-         <Route path='/pendings' element={<Review/>}/>
-         <Route path='/accepted' element={<Accepted/>}/>
-         <Route path='/rejected' element={<Rejected/>}/>
-       </Routes>
-      </BrowserRouter>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          {/* --- Public Routes (Have no special layout) --- */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/auth" element={<AuthWrapper />} />
 
-     
-    </div>
+          {/* --- Protected Dashboard Routes --- */}
+          {/* The <Dashboard> component contains its own Sidebar and Header (navbar) */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          >
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="register-donor" element={<DonorRegistrationForm />} />
+            <Route path="make-request" element={<BloodRequestForm />} />
+            <Route path="donors-list" element={<DonorsList />} />
+            <Route path="incoming-requests" element={<IncomingRequests />} />
+            <Route path="my-requests" element={<MyRequests />} />
+            <Route path="accepted" element={<AcceptedRequests />} />
+            <Route path="rejected" element={<RejectedRequests />} />
+            <Route path="map" element={<MapComponent/>}/>
+          </Route>
+
+          {/* --- Fallback Route --- */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
+}
+
+// --- Helper components (No changes needed) ---
+
+function AuthWrapper() {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <Navigate to="/dashboard/profile" replace /> : <LoginRegister />;
+}
+
+function PrivateRoute({ children }) {
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl font-semibold text-red-600">Loading...</div>
+      </div>
+    );
+  }
+  return isAuthenticated ? children : <Navigate to="/auth" replace />;
 }
 
 export default App;

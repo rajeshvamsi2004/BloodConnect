@@ -1,24 +1,35 @@
-const express = require('express');
+const express = require('express')
+const path = require('path');
+const { spawn } = require('child_process');
 const nodemailer = require('nodemailer');
 const app = express();
 const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
 const Request = require('./models/Request');
-const Bloodbank = require('./models/Bloodbank')
-const bloodcamps = require('./models/Bloodcamp');
+const Bloodbank = require('./models/Bloodbank');
+
+// Assuming bloodcamps model exists as it's used below
+// const bloodcamps = require('./models/Camp'); 
 const cors = require('cors');
 const mongoose = require('mongoose');
-app.use(cors())
-require('dotenv').config();[]
+const axios = require('axios');
+require('dotenv').config();
+
+app.use(cors());
+app.use(express.json());
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'r87921749@gmail.com',
-    pass: 'rdju lnsy hhka ucci' 
+    user: 'r87921749@gmail.com', // Replace with your App Password user if needed
+    pass: 'ktez qhrv heyl bklb'  // Use your Gmail App Password
   }
 });
+
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
+const API_URL = process.env.API_URL || 'http://192.168.1.34:4000'; // Important for email links
+
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -27,376 +38,333 @@ mongoose.connect(MONGODB_URI, {
 }).catch(err => {
   console.error('MongoDB connection error:', err);
 });
-app.get('/', async (req,res)=>{
-  res.send("This is first request");
-})
-app.post('/register',express.json(), async (req,res)=>{
-  const {Username,Email,Password} = req.body
-  try{
-    const ex = await reg.findOne({Email})
-    if(ex)
-    {
-      return res.send("User Existed");
-    }
-    const newuser = new reg({Username,Email,Password})
-    await newuser.save()
-    res.send("Registered Successfully")
-  }
-  catch(error){
-    res.send("Registration Unsuccessful")
-  }
 
-})
-app.post('/login',express.json(), async (req,res)=>{
-  const {Email,Password} = req.body 
-  try{
-    const old = await reg.findOne({Email})
-    if(!old)
-    {
-      return res.send("User Not Found");
-    }
-    if(old.Password != Password)
-    {
-      return res.send("Invalid Credentials")
-    }
-    res.send("Login Successful");
-  }
-  catch(error){
-    res.send("Login Error")
-  }
-})
-app.post('/donor',express.json(), async (req,res)=>{
-  const{Name,Age,Blood,Email,PhoneNumber} = req.body  
-  try{
-    const existed = await donor.findOne({Email})
-    if(existed)
-    {
-      return res.send("User Already Existed")
-    }  
-    const newdonor = new donor({Name,Age,Blood,Email,PhoneNumber})
-    await newdonor.save()
-    res.send("Successfully saved in MongoDB");
-  }
-  catch(error){
-    return res.send("Server Error")
-  }
-})
-const otpStore = {}; 
+// Default route
+app.get('/', (req, res) => {
+  res.send("BloodConnect API is running.");
+});
 
-app.post('/send-email', express.json(), async (req, res) => {
+// Register route
+app.post('/register', async (req, res) => {
+  const { Username, Email, Password } = req.body;
+  try {
+    const ex = await reg.findOne({ Email });
+    if (ex) return res.status(409).send("User Existed");
+
+    const newuser = new reg({ Username, Email, Password });
+    await newuser.save();
+    res.status(201).send("Registered Successfully");
+  } catch (error) {
+    res.status(500).send("Registration Unsuccessful");
+  }
+});
+
+// Login route
+app.post('/login', async (req, res) => {
+  const { Email, Password } = req.body;
+  try {
+    const old = await reg.findOne({ Email });
+    if (!old) return res.status(404).send("User Not Found");
+    if (old.Password !== Password) return res.status(401).send("Invalid Credentials");
+    res.status(200).send("Login Successful");
+  } catch (error) {
+    res.status(500).send("Login Error");
+  }
+});
+
+// Donor registration
+app.post('/donor', async (req, res) => {
+  const { Name, Age, Blood, Email, PhoneNumber } = req.body;
+  try {
+    const existed = await donor.findOne({ Email });
+    if (existed) return res.status(409).send("User Already Existed as a Donor");
+
+    const newdonor = new donor({ Name, Age, Blood, Email, PhoneNumber });
+    await newdonor.save();
+    res.status(201).send("Successfully registered as a donor");
+  } catch (error) {
+    res.status(500).send("Server Error");
+  }
+});
+
+// OTP generation and verification
+const otpStore = {};
+app.post('/send-email', async (req, res) => {
   const { email } = req.body;
-  const otp = Math.floor(100000 + Math.random() * 900000); 
-
+  const otp = Math.floor(100000 + Math.random() * 900000);
   otpStore[email] = otp;
 
   const mailOptions = {
     from: 'r87921749@gmail.com',
     to: email,
-    subject: 'Your OTP Code',
+    subject: 'Your BloodConnect OTP Code',
     text: `Your OTP is: ${otp}`
   };
 
   try {
     await transporter.sendMail(mailOptions);
-    res.send({ message: 'OTP sent to your email' });
+    res.status(200).send({ message: 'OTP sent to your email' });
   } catch (err) {
-    console.error('Email error:', err);
     res.status(500).send('Failed to send email');
   }
 });
-app.post('/verify-otp', express.json(), (req, res) => {
+
+app.post('/verify-otp', (req, res) => {
   const { email, otp } = req.body;
-
-  try {
-    if (otpStore[email] && otpStore[email].toString() === otp.toString()) {
-      delete otpStore[email];
-      return res.send({ message: 'OTP verified successfully' });
-    }
-
-    return res.status(400).send({ message: 'Invalid or expired OTP' });
-  } catch (error) {
-    console.error("OTP verification error:", error);
-    return res.status(500).send({ message: 'Server Error' });
+  if (otpStore[email] && otpStore[email].toString() === otp.toString()) {
+    delete otpStore[email];
+    return res.status(200).send({ message: 'OTP verified successfully' });
   }
+  return res.status(400).send({ message: 'Invalid or expired OTP' });
 });
-app.post('/blood-request', express.json(), async (req, res) => {
+
+// --- UPDATED BLOOD REQUEST CREATION WITH HTML EMAIL ---
+app.post('/blood-request', async (req, res) => {
   try {
     const { Name, Age, Blood, Email, PhoneNumber } = req.body;
-
-    const newRequest = new Request({
-      Name,
-      Age,
-      Blood,
-      Email,
-      PhoneNumber,
-      Status: 'pending',
-    });
-
+    const newRequest = new Request({ Name, Age, Blood, Email, PhoneNumber, Status: 'pending' });
     await newRequest.save();
 
-    const matchingDonors = await donor.find({ Blood,Email: { $ne: Email } });
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'r87921749@gmail.com',
-        pass: 'rdju lnsy hhka ucci'
-      }
-    });
+    const matchingDonors = await donor.find({ Blood, Email: { $ne: Email } });
 
     for (const donorUser of matchingDonors) {
+      const acceptUrl = `${API_URL}/update-request-status/${newRequest._id}?status=accepted`;
+      const rejectUrl = `${API_URL}/update-request-status/${newRequest._id}?status=rejected`;
+
       const mailOptions = {
         from: 'r87921749@gmail.com',
         to: donorUser.Email,
-        subject: `🩸 Urgent Blood Request - ${Blood}`,
-        text: `
-Hello ${donorUser.Name},
-
-A blood request has been made that matches your blood group: ${Blood}.
-
-Patient Details:
-- Name: ${Name}
-- Age: ${Age}
-- Contact Email: ${Email}
-- Contact Phone: ${PhoneNumber}
-
-Please respond in the app if you're available to donate.
-
-Thank you for being a life saver! ❤️
-
-~ Blood Donation Management System
+        subject: `🩸 Urgent Blood Request for Blood Group ${Blood}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; border: 1px solid #ddd; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #d9534f; text-align: center;">Urgent Blood Donation Request</h2>
+            <p>Hello ${donorUser.Name},</p>
+            <p>A patient is in urgent need of your blood group (<strong>${Blood}</strong>). You can respond directly in the app, or use the buttons below.</p>
+            <h3 style="color: #555;">Patient Details:</h3>
+            <ul><li><strong>Name:</strong> ${Name}</li><li><strong>Age:</strong> ${Age}</li></ul>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${acceptUrl}" style="background-color: #5cb85c; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-right: 10px;">Yes, I Can Donate</a>
+              <a href="${rejectUrl}" style="background-color: #d9534f; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Sorry, I Cannot</a>
+            </div>
+            <p style="text-align: center; font-size: 0.9em; color: #888;">Thank you for being a hero!<br><strong>~ BloodConnect</strong></p>
+          </div>
         `
       };
-
       await transporter.sendMail(mailOptions);
     }
-
-    const donorEmails = matchingDonors.map(d => d.Email);
-
-    res.status(201).send({
-      message: matchingDonors.length > 0
-        ? 'Request created and emails sent to matching donors.'
-        : 'Request created, but no matching donors found.',
-      request: newRequest,
-      matchingDonors: matchingDonors.length,
-      donors: donorEmails,
-    });
-
+    res.status(201).send({ message: matchingDonors.length > 0 ? 'Request created and emails sent.' : 'Request created, but no matching donors found.' });
   } catch (error) {
-    console.error('Error creating request:', error);
     res.status(500).send('Request unable to create');
   }
 });
 
-
-app.get('/blood-requests', async (req, res) => {
+// --- NEW ENDPOINT TO HANDLE EMAIL LINK CLICKS ---
+app.get('/update-request-status/:id', async (req, res) => {
   try {
-    
-    const pendingRequests = await Request.find({Status: "pending"});
-    res.status(200).json(pendingRequests);
+    const { id } = req.params;
+    const { status } = req.query;
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).send('<h1>Invalid Action</h1>');
+    }
+    const request = await Request.findById(id);
+    if (!request) {
+      return res.status(404).send('<h1>Request Not Found</h1>');
+    }
+    if (request.Status !== 'pending') {
+      return res.status(200).send(`<h1>Response Already Recorded</h1><p>This request is no longer pending. Thank you.</p>`);
+    }
+    request.Status = status;
+    await request.save();
+    const messageTitle = status === 'accepted' ? 'Thank You for Accepting!' : 'Response Recorded';
+    const messageBody = status === 'accepted' ? `The requester has been notified. You are a lifesaver!` : `We understand you cannot donate at this time. Thank you for responding.`;
+    res.status(200).send(`<div style="font-family: Arial, sans-serif; text-align: center; padding: 50px;"><h1 style="color: #4CAF50;">${messageTitle}</h1><p>${messageBody}</p></div>`);
   } catch (error) {
-    console.error('Error fetching requests:', error);
-    res.status(500).send('Error fetching requests');
+    res.status(500).send('<h1>Server Error</h1>');
   }
 });
-app.put('/blood-request/:id',express.json(),async (req,res)=>{
-  try{
-  const{status} = req.body
-  if(!['accepted','rejected'].includes(status))
-  {
-    return res.status(400).send('Error')
+
+// Update request status (used by the in-app frontend buttons)
+app.put('/blood-request/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['accepted', 'rejected'].includes(status)) {
+      return res.status(400).send({ message: 'Invalid status.' });
+    }
+    const updated = await Request.findByIdAndUpdate(req.params.id, { Status: status }, { new: true });
+    if (!updated) return res.status(404).send({ message: "The Request was not found." });
+    res.status(200).send({ message: `Request has been ${status}` });
+  } catch (error) {
+    res.status(500).send({ message: "Server error while updating request." });
   }
-  const updated = await Request.findByIdAndUpdate(req.params.id, {Status: status}, {new: true});
-  if(!updated)
-  {
-     return res.status(400).send("The Request not updated")
-  }
-  res.status(200).send({message: `Request ${status}`})
-  }
-  catch(error){
-    return res.status(400).send("Catch Error")
-  }
-})
-app.get('/bloodbanks',async (req,res) => {
-  res.json()
-})
-app.get('/status/:id', async (req,res)=>{
-  const re = await Request.findOne({Status})
-  if(re.Status === 'accepted')
-  {
-    return res.Statustatus(200).send('The request is accepted')
-  }
-  else
-  {
-    return res.status(200).send("There is No Response")
-  }
-})
+});
+
+// --- NEW ENDPOINT TO POWER THE "INCOMING REQUESTS" PAGE ---
+app.get('/pending-requests-for-donor', async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) {
+            return res.status(400).send({ message: 'Donor email is required.' });
+        }
+        const currentDonor = await donor.findOne({ Email: email });
+        if (!currentDonor) {
+            return res.status(200).json([]); // Not a donor, so no requests for them
+        }
+        const pendingRequests = await Request.find({
+            Status: "pending",
+            Blood: currentDonor.Blood,
+            Email: { $ne: email }
+        });
+        res.status(200).json(pendingRequests);
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+});
+
+// Get accepted donors for a specific request
 app.get('/accepted/:id', async (req, res) => {
   try {
-    const requestId = req.params.id;
-    const requesterEmail = req.query.email;
-
-    if (!requesterEmail) {
-      return res.status(400).send({ message: "Requester email is required in query." });
-    }
-
-    const request = await Request.findById(requestId);
-    if (!request) {
-      return res.status(404).send({ message: "Blood request not found." });
-    }
-    const dbEmail = request.Email?.trim().toLowerCase();
-    const queryEmail = requesterEmail.trim().toLowerCase();
-
-    console.log(`🔍 DB Email: [${dbEmail}]`);
-    console.log(`🔍 Query Email: [${queryEmail}]`);
-
-    if (dbEmail !== queryEmail) {
-      console.log("❌ Email mismatch detected");
-      return res.status(403).send({ message: "Access denied. This request was not made by you." });
+    const { id } = req.params;
+    const { email } = req.query;
+    if (!email) return res.status(400).send({ message: "Requester email is required." });
+    
+    const request = await Request.findById(id);
+    if (!request) return res.status(404).send({ message: "Blood request not found." });
+    if (request.Email.toLowerCase() !== email.toLowerCase()) {
+      return res.status(403).send({ message: "Access denied." });
     }
 
     if (request.Status === 'accepted') {
       const matchingDonors = await donor.find({ Blood: request.Blood });
-
-      return res.status(200).send({
-        message: "Request accepted. Here are the matching donors.",
-        status: "accepted",
-        donors: matchingDonors
-      });
+      return res.status(200).send({ message: "Request accepted.", status: "accepted", donors: matchingDonors });
     } else {
-      return res.status(200).send({
-        message: "Your request is still pending.",
-        status: "pending",
-        donors: []
-      });
+      return res.status(200).send({ message: "Your request is still pending.", status: "pending", donors: [] });
     }
-
   } catch (error) {
-    console.error("🔥 Server error in /accepted/:id:", error);
-    res.status(500).send({ message: "Internal server error. Please try again later." });
+    res.status(500).send({ message: "Internal server error." });
   }
 });
 
-
-app.get('/rejected/:id', async (req, res) => {
-  try {
-    const request = await Request.findById(req.params.id);
-
-    if (!request) {
-      return res.status(404).send({ message: "Request not found" });
+// Get all donors
+app.get('/donors', async (req, res) => {
+    try {
+        const allDonors = await donor.find({}, 'Name Age Blood Email PhoneNumber');
+        res.status(200).json(allDonors);
+    } catch (error) {
+        res.status(500).send('Server Error');
     }
-
-    const { Status } = request;
-
-    if (Status === 'rejected') {
-      return res.status(200).send({
-        message: "Unfortunately, your blood request was rejected.",
-        status: Status
-      });
-    } else {
-      return res.status(200).send({
-        message: "The request is still pending.",
-        status: Status
-      });
-    }
-  } catch (error) {
-    console.error("Error in /rejected/:id:", error);
-    return res.status(500).send({ message: "Internal server error" });
-  }
 });
 
-app.post('/bank', express.json(), async (req,res)=>{
-  try{
-    const{State,City,Contact,Blood} = req.body;
-    const newBank = new Bloodbank({
-      State,City,Contact,Blood
-    })
-    await newBank.save();
-    res.status(201).json({message: "Blood Bank Added Successfully", data : newBank});
-  }
-  catch(error)
-  {
-    res.status(404).json({error: "404 found Error"});
-  }
-})
-const fallbackBanks = require('./bloodbanks.json');
-const axios = require('axios');
+// Get a user's own requests
+app.get('/my-requests', async (req, res) => {
+    try {
+        const { email } = req.query;
+        if (!email) return res.status(400).send('Email query parameter is required.');
+        const userRequests = await Request.find({ Email: email });
+        res.status(200).json(userRequests);
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+});
 
-app.get('/gov-bloodbanks', async (req, res) => {
-  const { state, district, bloodGroup } = req.query;
+// Get a user's profile
+app.get('/profile/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        let userProfile = await donor.findOne({ Email: email });
+        if (!userProfile) {
+             userProfile = await reg.findOne({ Email: email }, 'Username Email');
+             if(!userProfile) return res.status(404).send('User not found.');
+        }
+        res.status(200).json(userProfile);
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+});
 
-  try {
-    const response = await axios.get(
-      'https://www.eraktkosh.in/BLDAHIMS/bloodbank/transactions/reqBBAvailability.json',
-      {
-        params: {
-          state,
-          district,
-          bloodGroup
-        },
-        timeout: 3000 // 3 seconds timeout to prevent long waits
-      }
-    );
+// Update a user's profile
+app.put('/profile/:email', async (req, res) => {
+    try {
+        const { email } = req.params;
+        const updatedProfile = await donor.findOneAndUpdate({ Email: email }, req.body, { new: true });
+        if (!updatedProfile) return res.status(404).send('Donor profile not found to update.');
+        res.status(200).json({ message: 'Profile updated successfully!', profile: updatedProfile });
+    } catch (error) {
+        res.status(500).send('Server Error');
+    }
+});
 
-    const banks = response.data?.data || [];
-    res.status(200).json({
-      message: "Data from Government API",
-      data: banks
+function runPythonScript(scriptPath, args) {
+    return new Promise((resolve, reject) => {
+        const pythonProcess = spawn('python3', [scriptPath, ...args]);
+        
+        let scriptOutput = "";
+        let scriptError = "";
+
+        pythonProcess.stdout.on('data', (data) => {
+            scriptOutput += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data) => {
+            scriptError += data.toString();
+        });
+
+        pythonProcess.on('close', (code) => {
+            if (code !== 0) {
+                console.error(`Error in ${scriptPath}: ${scriptError}`);
+                // Resolve with an empty array on failure so one failing script doesn't kill all results
+                resolve([]); 
+            } else {
+                try {
+                    resolve(JSON.parse(scriptOutput));
+                } catch (e) {
+                    console.error(`Failed to parse JSON from ${scriptPath}:`, e);
+                    resolve([]); // Resolve with empty on parsing failure
+                }
+            }
+        });
     });
+}
 
-  } catch (error) {
-    console.error('Gov API error:', error.message);
+app.get('/api/blood-banks', async (req, res) => {
+    // We now need both location name and coordinates
+    const { lat, lon, locationName } = req.query;
 
-    // Use fallback
-    const filteredBanks = fallbackBanks.filter(bank =>
-      bank.state === state &&
-      bank.district === district &&
-      bank.bloodGroupsAvailable.includes(bloodGroup)
-    );
+    if (!lat || !lon || !locationName) {
+        return res.status(400).json({ error: "Latitude, longitude, and location name are required." });
+    }
+    
+    console.log(`Received request for ${locationName} at lat=${lat}, lon=${lon}`);
 
+    try {
+        // Run both scripts in parallel and wait for them to complete
+        const [osmResults, justdialResults] = await Promise.all([
+            runPythonScript('scrape_blood_banks.py', [lat, lon]),
+            runPythonScript('scrape_justdial.py', [locationName])
+        ]);
 
-    res.status(200).json({
-      message: "Government API unavailable. Showing fallback data.",
-      data: filteredBanks
-    });
-  }
+        // Combine the results from both sources
+        const combinedResults = [...osmResults, ...justdialResults];
+        
+        // --- De-duplicate the results ---
+        // Create a Set of unique names to track duplicates
+        const uniqueNames = new Set();
+        const finalResults = combinedResults.filter(bank => {
+            const isDuplicate = uniqueNames.has(bank.name.toLowerCase());
+            uniqueNames.add(bank.name.toLowerCase());
+            return !isDuplicate;
+        });
+
+        console.log(`Found ${osmResults.length} results from OSM and ${justdialResults.length} from Justdial. Returning ${finalResults.length} unique results.`);
+        
+        res.status(200).json(finalResults);
+
+    } catch (error) {
+        console.error("An error occurred while running scraping scripts:", error);
+        res.status(500).json({ error: "Failed to fetch data." });
+    }
 });
 
-app.post('/addbloodcamp',express.json(),async (req,res)=>{
-  const{Organizer,PhoneNumber,City,Place,Date,Time,} =  req.body;
-  try
-  {
-     const ex = await bloodcamps.findOne({Organizer,City,Date})
-     if(ex)
-     {
-        return res.status(409).send("Blood Camp is already existed");
-     }
-     const newcamp = new bloodcamps({Organizer,PhoneNumber,City,Place,Date,Time: {Start: Time.Start, End: Time.End}});
-     await newcamp.save();
-     return res.status(201).send("Blood Camp added Successfully");
-     
-  }
-  catch(error)
-  {
-    return res.status(404).send("404 Error Forbidden")
-  }
-})
-app.post('/City',express.json(),async (req,res)=>{
-  const{City} = req.body;
-  try
-  {
-     const camps = await bloodcamps.find({City})
-     if(camps.length == 0)
-     {
-        return res.status(404).send(`No Blood Camps in The ${City}`);
-     }
-     res.status(200).json(camps);
-  }
-  catch(error)
-  {
-      res.status(500).send("Server Error");
-  }
-})
-app.listen(PORT,(req,res)=>{
-  console.log("The Port is Running Successfully")
+// Start the server
+app.listen(PORT, () => {
+  console.log(`The Port ${PORT} is Running Successfully`);
 });
