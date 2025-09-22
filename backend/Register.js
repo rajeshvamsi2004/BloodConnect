@@ -7,6 +7,7 @@ const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
 const Request = require('./models/Request');
 const Bloodbank = require('./models/Bloodbank');
+const cors = require('cors');
 const corsOptions = {
   origin: 'https://bloodconnect-2.onrender.com', // your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
