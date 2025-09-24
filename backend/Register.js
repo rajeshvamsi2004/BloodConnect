@@ -416,6 +416,9 @@ app.get('/api/blood-banks', async (req, res) => {
     }
 });
 
+app.get('/', (req, res) => {
+  res.send('🚀 BloodConnect API is running');
+});
 
 // Start the server
 app.listen(PORT, () => {
