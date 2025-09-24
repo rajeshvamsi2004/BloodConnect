@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 const corsOptions = {
-  origin: 'https://bloodconnect-2.onrender.com', // your frontend URL
+  origin: 'https://rajeshvamsi2004.github.io/', // your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // allow cookies if needed
