@@ -1,4 +1,7 @@
+// models/Donor.js
+
 const mongoose = require('mongoose');
+
 const schema = new mongoose.Schema({
   Name: {
     type: String,
@@ -20,5 +23,6 @@ const schema = new mongoose.Schema({
     type: String,
     required: true
   }
-},{collection: 'Donor'})
-module.exports = mongoose.model("donor",schema)
+}, { collection: 'Donor' });
+
+module.exports = mongoose.model("donor", schema);
