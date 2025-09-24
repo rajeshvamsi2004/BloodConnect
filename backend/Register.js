@@ -4,18 +4,18 @@ const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-// const corsOptions = {
-//   origin: 'https://bloodconnect-2.onrender.com', // your frontend URL
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true, // allow cookies if needed
-// };
+const corsOptions = {
+  origin: 'https://bloodconnect-front.onrender.com', // your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // allow cookies if needed
+};
 const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
 const Request = require('./models/Request');
 
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const transporter = nodemailer.createTransport({
@@ -28,7 +28,7 @@ const transporter = nodemailer.createTransport({
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
-const API_URL = process.env.API_URL || 'http://localhost:5000';
+const API_URL = process.env.API_URL || 'https://bloodconnect-front.onrender.com';
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
