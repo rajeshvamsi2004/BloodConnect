@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
-const API_BASE_URL = 'https://bloodconnect-sev0.onrender.com';
+const API_BASE_URL = 'https://bloodconnect-new.onrender.com';
 
 const Profile = () => {
   const { userEmail } = useAuth();
