@@ -1,45 +1,57 @@
-// src/components/Dashboard/IncomingRequests.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext'; // No change here
 import { toast } from 'react-toastify';
 
 const API_BASE_URL = 'https://bloodconnect-sev0.onrender.com';
 
 const IncomingRequests = () => {
-    const { userEmail } = useAuth();
+    // --- CHANGE 1: Get the full 'user' object from your AuthContext ---
+    // This 'user' object will contain the donor's _id, Name, etc.
+    const { user, userEmail } = useAuth(); 
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const fetchRequests = async () => {
-        if (!userEmail) return;
-        try {
-            const response = await axios.get(`${API_BASE_URL}/pending-requests-for-donor`, {
-                params: { email: userEmail }
-            });
-            setRequests(response.data);
-        } catch (error) {
-            toast.error('Failed to fetch incoming requests.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchRequests = async () => {
+            if (!userEmail) return;
+            try {
+                const response = await axios.get(`${API_BASE_URL}/pending-requests-for-donor`, {
+                    params: { email: userEmail }
+                });
+                setRequests(response.data);
+            } catch (error) {
+                toast.error('Failed to fetch incoming requests.');
+            } finally {
+                setIsLoading(false);
+            }
+        };
         fetchRequests();
     }, [userEmail]);
 
     const handleUpdateRequest = async (requestId, status) => {
+        // --- CHANGE 2: Check if we have the donor's info before proceeding ---
+        if (!user || !user._id) {
+            toast.error("Could not identify the donor. Please try logging in again.");
+            return;
+        }
+
         try {
-            // We use the PUT endpoint here for in-app actions
-            const response = await axios.put(`${API_BASE_URL}/blood-request/${requestId}`, { status });
+            // --- CHANGE 3: Include the donorId in the request body ---
+            // This now matches what your backend API requires.
+            const response = await axios.put(`${API_BASE_URL}/blood-request/${requestId}`, {
+                status: status,
+                donorId: user._id // The CRITICAL piece of missing information
+            });
+            
             toast.success(response.data.message);
             
-            // Remove the handled request from the list to prevent multiple actions
+            // This is good practice: remove the request from the UI after handling it.
             setRequests(prevRequests => prevRequests.filter(req => req._id !== requestId));
 
         } catch (error) {
-            toast.error('Failed to update the request status.');
+            // The error toast will now show more specific messages from the backend
+            toast.error(error.response?.data?.message || 'Failed to update the request status.');
         }
     };
 
@@ -57,7 +69,7 @@ const IncomingRequests = () => {
                 {requests.length > 0 ? (
                     requests.map(req => (
                         <div key={req._id} className="p-6 border border-gray-200 rounded-lg shadow-sm bg-gray-50">
-                            <div className="flex justify-between items-center">
+                            <div className="flex justify-between items-center flex-wrap gap-4">
                                 <div>
                                     <p className="text-lg font-semibold text-gray-800">
                                         Patient Name: {req.Name} (Age: {req.Age})
@@ -74,13 +86,13 @@ const IncomingRequests = () => {
                                         onClick={() => handleUpdateRequest(req._id, 'accepted')}
                                         className="px-5 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300 shadow-md"
                                     >
-                                        <i className="fas fa-check mr-2"></i> Accept
+                                        Accept
                                     </button>
                                     <button
                                         onClick={() => handleUpdateRequest(req._id, 'rejected')}
                                         className="px-5 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-300 shadow-md"
                                     >
-                                        <i className="fas fa-times mr-2"></i> Reject
+                                        Reject
                                     </button>
                                 </div>
                             </div>
