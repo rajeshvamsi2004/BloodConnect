@@ -99,17 +99,26 @@ const LoginRegister = () => {
     }
   };
 
-  const handleLogin = async () => {
+  
+const handleLogin = async () => {
     setIsLoading(true);
     try {
       const res = await axios.post(`${API_BASE_URL}/login`, {
         Email: formData.Email,
         Password: formData.Password,
       });
-      toast.success(res.data);
+
       if (res.data === "Login Successful") {
-        login(formData.Email); // Store user info in context
-        navigate('/dashboard/profile'); // Navigate to dashboard after login
+        toast.success("Login Successful!");
+        
+        // --- THIS IS THE FIX ---
+        // Use 'await' to ensure the context is updated before navigating.
+        await login(formData.Email); 
+        
+        navigate('/dashboard/profile'); // Navigate AFTER the user is fully set in the context.
+      } else {
+        // This case might not be needed if your API sends error codes, but is safe to have
+        toast.error(res.data);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -118,7 +127,6 @@ const LoginRegister = () => {
       setIsLoading(false);
     }
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (isLogin) {
