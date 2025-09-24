@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/BloodConnect/static/css/main.52e83b8e.css",
+    "main.js": "/BloodConnect/static/js/main.85d04c3d.js",
+    "static/js/453.670e15c7.chunk.js": "/BloodConnect/static/js/453.670e15c7.chunk.js",
+    "index.html": "/BloodConnect/index.html",
+    "main.52e83b8e.css.map": "/BloodConnect/static/css/main.52e83b8e.css.map",
+    "main.85d04c3d.js.map": "/BloodConnect/static/js/main.85d04c3d.js.map",
+    "453.670e15c7.chunk.js.map": "/BloodConnect/static/js/453.670e15c7.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.52e83b8e.css",
+    "static/js/main.85d04c3d.js"
+  ]
+}
