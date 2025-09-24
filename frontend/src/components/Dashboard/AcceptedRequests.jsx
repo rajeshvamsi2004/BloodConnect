@@ -1,55 +1,28 @@
-// src/components/Dashboard/AcceptedRequests.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
+import DonorModal from './DonorModal'; // <-- STEP 1: Import the new component
 
 const API_BASE_URL = 'https://bloodconnect-sev0.onrender.com';
-
-// A simple Modal component
-const DonorModal = ({ donors, isLoading, onClose }) => {
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-lg relative">
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
-                <h3 className="text-2xl font-bold text-red-700 mb-6 text-center">Available Donors</h3>
-                {isLoading ? (
-                    <p className="text-center text-gray-600">Loading donors...</p>
-                ) : donors.length > 0 ? (
-                    <div className="space-y-4 max-h-96 overflow-y-auto">
-                        {donors.map(donor => (
-                            <div key={donor._id} className="p-4 border rounded-lg bg-gray-50">
-                                <p className="font-semibold text-gray-800">{donor.Name}</p>
-                                <p className="text-sm text-gray-600">Blood Group: <span className="font-bold">{donor.Blood}</span></p>
-                                <p className="text-sm text-gray-600">Contact: {donor.Email} | {donor.PhoneNumber}</p>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-center text-gray-500 py-10">No donors found for this request.</p>
-                )}
-            </div>
-        </div>
-    );
-};
-
 
 const AcceptedRequests = () => {
     const { userEmail } = useAuth();
     const [acceptedRequests, setAcceptedRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalDonors, setModalDonors] = useState([]);
+    const [modalDonor, setModalDonor] = useState(null);
     const [isModalLoading, setIsModalLoading] = useState(false);
 
     useEffect(() => {
+        // ... (The useEffect hook for fetching requests remains the same)
         const fetchRequests = async () => {
             if (!userEmail) return;
+            setIsLoading(true);
             try {
                 const response = await axios.get(`${API_BASE_URL}/my-requests`, {
                     params: { email: userEmail }
                 });
-                // Filter for accepted requests
                 const filtered = response.data.filter(req => req.Status === 'accepted');
                 setAcceptedRequests(filtered);
             } catch (error) {
@@ -61,22 +34,22 @@ const AcceptedRequests = () => {
         fetchRequests();
     }, [userEmail]);
 
-    const handleViewDonors = async (requestId) => {
+    const handleViewDonor = async (requestId) => {
+        // ... (This function for fetching the donor details remains the same)
         setIsModalOpen(true);
         setIsModalLoading(true);
+        setModalDonor(null);
         try {
             const response = await axios.get(`${API_BASE_URL}/accepted/${requestId}`, {
                 params: { email: userEmail }
             });
-            if (response.data.status === 'accepted') {
-                setModalDonors(response.data.donors);
+            if (response.data.status === 'accepted' && response.data.donors.length > 0) {
+                setModalDonor(response.data.donors[0]);
             } else {
-                toast.info(response.data.message);
-                setModalDonors([]);
+                toast.info('Could not find the accepted donor for this request.');
             }
         } catch (error) {
-            console.error('Error fetching accepted donors:', error);
-            toast.error(error.response?.data.message || 'Failed to fetch donor details.');
+            toast.error(error.response?.data?.message || 'Failed to fetch donor details.');
         } finally {
             setIsModalLoading(false);
         }
@@ -99,10 +72,10 @@ const AcceptedRequests = () => {
                                     <p className="text-gray-600">Required Blood: <span className="font-bold text-red-600">{req.Blood}</span></p>
                                 </div>
                                 <button
-                                    onClick={() => handleViewDonors(req._id)}
+                                    onClick={() => handleViewDonor(req._id)}
                                     className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-300"
                                 >
-                                    View Available Donors
+                                    View Donor Details
                                 </button>
                             </div>
                         ))
@@ -112,9 +85,10 @@ const AcceptedRequests = () => {
                 </div>
             </div>
 
+            {/* STEP 2: Use the imported component here */}
             {isModalOpen && (
                 <DonorModal
-                    donors={modalDonors}
+                    donor={modalDonor}
                     isLoading={isModalLoading}
                     onClose={() => setIsModalOpen(false)}
                 />
