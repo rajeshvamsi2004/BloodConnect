@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = 'https://bloodconnect-sev0.onrender.com';
+const API_BASE_URL = 'https://bloodconnect-new.onrender.com';
 
 const DonorRegistrationForm = () => {
   const { userEmail } = useAuth();
