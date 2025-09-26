@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_BASE_URL = 'https://bloodconnect-now.onrender.com';
+const API_BASE_URL = 'https://bloodconnect-9fxm.onrender.com';
 
 const DonorsList = () => {
     const [donors, setDonors] = useState([]);
