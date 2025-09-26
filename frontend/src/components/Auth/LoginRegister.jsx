@@ -40,7 +40,7 @@ return;
 }
 setIsLoading(true);
 try {
-const res = await axios.post(${API_BASE_URL}/send-email, { email: formData.Email });
+const res = await axios.post(`${API_BASE_URL}/send-email`, { email: formData.Email });
 toast.success(res.data.message);
 setShowOtpField(true);
 setOtpSent(true);
