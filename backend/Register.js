@@ -30,7 +30,7 @@ const transporter = nodemailer.createTransport({
 
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
-const API_URL = process.env.API_URL || 'https://bloodconnect-1-6a1t.onrender.com';
+const API_URL = process.env.API_URL || 'https://savefront.onrender.com';
 
 mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
