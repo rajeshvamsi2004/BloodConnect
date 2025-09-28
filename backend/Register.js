@@ -5,9 +5,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 const corsOptions = {
-  origin: 'https://savefront.onrender.com', // your frontend URL
+  origin: 'https://savefront.onrender.com',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 };
 const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
@@ -15,6 +16,7 @@ const Request = require('./models/Request');
 
 const app = express();
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 const transporter = nodemailer.createTransport({
