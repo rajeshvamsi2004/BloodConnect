@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 
-const API_BASE_URL = 'https://bloodconnect-9fxm.onrender.com';
+const API_BASE_URL = 'https://save-o4h7.onrender.com';
 
 const RejectedRequests = () => {
     const { userEmail } = useAuth();
