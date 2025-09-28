@@ -4,18 +4,18 @@ const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
-// const corsOptions = {
-//   origin: 'https://bloodconnect-1-6a1t.onrender.com', // your frontend URL
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
-//   credentials: true, // allow cookies if needed
-// };
+const corsOptions = {
+  origin: 'https://savefront.onrender.com', // your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // allow cookies if needed
+};
 const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
 const Request = require('./models/Request');
 
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 const transporter = nodemailer.createTransport({
