@@ -1,6 +1,6 @@
 const express = require('express');
 const { spawn } = require('child_process');
-const nodemailer = require('nodemailer');
+const nodemailer = a('nodemailer');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
@@ -24,8 +24,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true, 
   auth: {
-    user: process.env.EMAIL_USER || 'r87921749@gmail.com',
-    pass: process.env.EMAIL_PASS || 'whbb pwys ukvm zuid'
+    user:  'r87921749@gmail.com',
+    pass:  'whbb pwys ukvm zuid'
   }
 });
 
@@ -273,30 +273,6 @@ app.get('/pending-requests-for-donor', async (req, res) => {
     } catch (error) {
         res.status(500).send('Server Error');
     }
-});
-
-// Get accepted donors for a specific request
-app.get('/accepted/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { email } = req.query;
-    if (!email) return res.status(400).send({ message: "Requester email is required." });
-    
-    const request = await Request.findById(id);
-    if (!request) return res.status(404).send({ message: "Blood request not found." });
-    if (request.Email.toLowerCase() !== email.toLowerCase()) {
-      return res.status(403).send({ message: "Access denied." });
-    }
-
-    if (request.Status === 'accepted') {
-      const matchingDonors = await donor.find({ Blood: request.Blood });
-      return res.status(200).send({ message: "Request accepted.", status: "accepted", donors: matchingDonors });
-    } else {
-      return res.status(200).send({ message: "Your request is still pending.", status: "pending", donors: [] });
-    }
-  } catch (error) {
-    res.status(500).send({ message: "Internal server error." });
-  }
 });
 
 // Get all donors
