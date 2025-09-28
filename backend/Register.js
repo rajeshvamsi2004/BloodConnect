@@ -8,7 +8,6 @@ const corsOptions = {
   origin: 'https://savefront.onrender.com', // your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // allow cookies if needed
 };
 const reg = require('./models/Rmodel');
 const donor = require('./models/Donor');
