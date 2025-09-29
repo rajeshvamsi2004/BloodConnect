@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const API_BASE_URL = 'https://blood-connect-orcin.vercel.app/';
+const API_BASE_URL = 'https://blood-connect-orcin.vercel.app';
 
 const DonorsList = () => {
     const [donors, setDonors] = useState([]);
