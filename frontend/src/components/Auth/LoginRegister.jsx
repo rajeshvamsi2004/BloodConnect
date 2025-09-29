@@ -103,7 +103,7 @@ const LoginRegister = () => {
 const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.post(`${API_BASE_URL}/login`, {
+      const res = await axios.post(`${API_BASE_URL}/api/login`, {
         Email: formData.Email,
         Password: formData.Password,
       });
