@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import DonorModal from './DonorModal'; // <-- STEP 1: Import the new component
 
-const API_BASE_URL = 'https://blood-connect-orcin.vercel.app/';
+const API_BASE_URL = 'https://blood-connect-orcin.vercel.app';
 
 const AcceptedRequests = () => {
     const { userEmail } = useAuth();
