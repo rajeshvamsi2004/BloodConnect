@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
-const API_BASE_URL = 'https://blood-connect-orcin.vercel.app/';
+const API_BASE_URL = 'https://blood-connect-orcin.vercel.app';
 
 const DonorRegistrationForm = () => {
   const { userEmail } = useAuth();
