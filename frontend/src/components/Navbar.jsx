@@ -142,8 +142,8 @@ const Navbar = ({ setSidebarOpen }) => {
                         
                         {/* --- START: MODIFICATION for Mobile --- */}
                         {/* Replaced the single "Blood Camps" link with two direct links for a better mobile experience */}
-                        <NavLink to="camps" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Add Blood Camp</NavLink>
-                        <NavLink to="camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>
+                        <NavLink to="/camps" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Add Blood Camp</NavLink>
+                        <NavLink to="/camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>
                         {/* --- END: MODIFICATION for Mobile --- */}
                         
                         <div className="mt-4 border-t border-gray-200 pt-4">
