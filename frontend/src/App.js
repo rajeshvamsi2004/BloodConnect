@@ -54,8 +54,8 @@ function App() {
             <Route path="rejected" element={<RejectedRequests />} />
             <Route path="map" element={<MapComponent/>}/>
             <Route path="blood" element={<Blood/>}/>
-            <Route path="camps" element={<BloodCampManager/>}/>
-            <Route path="camplist" element={<BloodCampList/>}/>
+            <Route path="/camps" element={<BloodCampManager/>}/>
+            <Route path="/camplist" element={<BloodCampList/>}/>
           </Route>
 
           {/* --- Fallback Route --- */}
