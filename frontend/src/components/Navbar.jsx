@@ -7,6 +7,8 @@ const Navbar = ({ setSidebarOpen }) => {
     const { isAuthenticated } = useAuth();
     const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    const [isCampsDropdownOpen, setCampsDropdownOpen] = useState(false);
+
     const navLinkClasses = ({ isActive }) =>
         `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
             isActive
@@ -14,6 +16,17 @@ const Navbar = ({ setSidebarOpen }) => {
                 : 'text-gray-700 hover:bg-red-500 hover:text-white'
         }`;
     
+    // Custom classes for the dropdown button to make it look like other nav links
+    const dropdownButtonClasses = `px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-red-500 hover:text-white cursor-pointer`;
+    
+    // Custom classes for the links inside the dropdown menu
+    const dropdownLinkClasses = ({ isActive }) =>
+        `block px-4 py-2 text-sm ${
+            isActive 
+            ? 'bg-red-500 text-white' 
+            : 'text-gray-700 hover:bg-gray-100'
+        }`;
+
     const mobileNavLinkClasses = ({ isActive }) =>
         `block px-3 py-2 rounded-md text-base font-medium ${
             isActive
@@ -26,10 +39,8 @@ const Navbar = ({ setSidebarOpen }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     
-                    {/* --- LEFT SIDE: Sidebar Button (Dashboard Only) + Logo --- */}
+                    {/* --- LEFT SIDE: (No changes here) --- */}
                     <div className="flex items-center">
-                        {/* LEFT Hamburger Button for Sidebar */}
-                        {/* This button ONLY appears if 'setSidebarOpen' prop is provided (i.e., inside the Dashboard) */}
                         {setSidebarOpen && (
                             <div className="flex md:hidden mr-4">
                                 <button
@@ -42,8 +53,6 @@ const Navbar = ({ setSidebarOpen }) => {
                                 </button>
                             </div>
                         )}
-                        
-                        {/* Logo */}
                         <div className="flex-shrink-0">
                             <Link to="/" className="flex items-center">
                                 <FaHeartbeat className="h-8 w-8 text-red-500" />
@@ -56,20 +65,46 @@ const Navbar = ({ setSidebarOpen }) => {
                     <div className="hidden md:flex items-center">
                         <div className="ml-10 flex items-baseline space-x-4">
                             <NavLink to="/" className={navLinkClasses}>Home</NavLink>
-                            <NavLink to="register-donor" className={navLinkClasses}>Register as Donor</NavLink>
-                            <NavLink to="make-request" className={navLinkClasses}>Blood Request</NavLink>
-                             <NavLink to="request-blood" className={navLinkClasses}>Find Bloodbanks</NavLink>
-                             <NavLink to="request-blood" className={navLinkClasses}>Blood Camps</NavLink>
+                            <NavLink to="/dashboard/register-donor" className={navLinkClasses}>Register as Donor</NavLink>
+                            <NavLink to="/dashboard/make-request" className={navLinkClasses}>Blood Request</NavLink>
+                            <NavLink to="request" className={navLinkClasses}>Find Bloodbanks</NavLink>
+                            
+                            {/* --- START: MODIFICATION for Desktop --- */}
+                            <div className="relative">
+                                {/* This button now toggles the dropdown */}
+                                <button
+                                    type="button"
+                                    className={dropdownButtonClasses}
+                                    onClick={() => setCampsDropdownOpen(prev => !prev)}
+                                >
+                                    Blood Camps
+                                </button>
+                                {/* The dropdown menu, which shows conditionally */}
+                                {isCampsDropdownOpen && (
+                                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                        <div className="py-1">
+                                            <NavLink 
+                                                to="camps" // Route for adding a camp
+                                                className={dropdownLinkClasses}
+                                                onClick={() => setCampsDropdownOpen(false)}
+                                            >
+                                                Add Blood Camp
+                                            </NavLink>
+                                            <NavLink 
+                                                to="camplist" // Route for the camp list
+                                                className={dropdownLinkClasses}
+                                                onClick={() => setCampsDropdownOpen(false)}
+                                            >
+                                                Blood Camps List
+                                            </NavLink>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            {/* --- END: MODIFICATION for Desktop --- */}
                         </div>
                         <div className="ml-6">
-                            {isAuthenticated ? (
-                                <Link
-                                    to="/dashboard"
-                                    
-                                >
-                                    
-                                </Link>
-                            ) : (
+                            {!isAuthenticated && (
                                 <Link
                                     to="/auth"
                                     className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded-md text-sm font-medium"
@@ -80,7 +115,7 @@ const Navbar = ({ setSidebarOpen }) => {
                         </div>
                     </div>
 
-                    {/* --- RIGHT SIDE: Navbar's own Hamburger Button (Mobile Only) --- */}
+                    {/* --- RIGHT SIDE: (No changes here) --- */}
                     <div className="flex md:hidden">
                         <button
                             onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
@@ -96,15 +131,20 @@ const Navbar = ({ setSidebarOpen }) => {
                 </div>
             </div>
 
-            {/* --- MOBILE DROPDOWN MENU (Controlled by the right-side button) --- */}
+            {/* --- MOBILE DROPDOWN MENU --- */}
             {isMobileMenuOpen && (
                 <div className="md:hidden" id="mobile-menu">
                     <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                         <NavLink to="/" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Home</NavLink>
-                        <NavLink to="/register-donor" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Register as Donor</NavLink>
-                        <NavLink to="/request-blood" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Request</NavLink>
-                         <NavLink to="/request-blood" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Find Bloodbanks</NavLink>
-                          <NavLink to="/request-blood" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps</NavLink>
+                        <NavLink to="/dashboard/register-donor" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Register as Donor</NavLink>
+                        <NavLink to="/dashboard/make-request" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Request</NavLink>
+                        <NavLink to="/request-blood" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Find Bloodbanks</NavLink>
+                        
+                        {/* --- START: MODIFICATION for Mobile --- */}
+                        {/* Replaced the single "Blood Camps" link with two direct links for a better mobile experience */}
+                        <NavLink to="camps" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Add Blood Camp</NavLink>
+                        <NavLink to="camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>
+                        {/* --- END: MODIFICATION for Mobile --- */}
                         
                         <div className="mt-4 border-t border-gray-200 pt-4">
                              {isAuthenticated ? (
