@@ -395,9 +395,86 @@ app.get('/api/blood-banks', async (req, res) => {
     }
 });
 
+const bloodCampSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    time: String,
+    contact: String,
+    bloodTypes: String
+});
+
+const BloodCamp = mongoose.model('BloodCamp', bloodCampSchema);
+app.get('/api/blood-camps', async (req, res) => {
+    try {
+        const camps = await BloodCamp.find(); // Fetches all documents from the BloodCamp collection
+        res.json(camps);
+    } catch (error) {
+        console.error("Error fetching blood camps:", error);
+        res.status(500).json({ message: 'Server error while fetching camps' });
+    }
+});
+
+
+app.post('/api/blood-camps', async (req, res) => {
+    try {
+        const { name, address, time, contact, bloodTypes } = req.body;
+
+        // Create a new document using the BloodCamp model
+        const newCamp = new BloodCamp({
+            name,
+            address,
+            time,
+            contact,
+            bloodTypes
+        });
+
+        // Save the new document to the database
+        const savedCamp = await newCamp.save();
+        
+        res.status(201).json(savedCamp); // Respond with the newly created camp data
+    } catch (error) {
+        console.error("Error adding blood camp:", error);
+        res.status(400).json({ message: 'Failed to add blood camp. Check input data.' });
+    }
+});
+app.put('/api/blood-camps/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Find the camp by ID and update it with the new data from the request body
+        const updatedCamp = await BloodCamp.findByIdAndUpdate(id, req.body, {
+            new: true, // This option returns the updated document
+            runValidators: true,
+        });
+
+        if (!updatedCamp) {
+            return res.status(404).json({ message: 'Blood camp not found' });
+        }
+
+        res.json(updatedCamp);
+    } catch (error) {
+        console.error("Error updating blood camp:", error);
+        res.status(500).json({ message: 'Server error while updating camp' });
+    }
+});
+app.delete('/api/blood-camps/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const deletedCamp = await BloodCamp.findByIdAndDelete(id);
+
+        if (!deletedCamp) {
+            return res.status(404).json({ message: 'Blood camp not found' });
+        }
+
+        res.json({ message: 'Blood camp deleted successfully' });
+    } catch (error) {
+        console.error("Error deleting blood camp:", error);
+        res.status(500).json({ message: 'Server error while deleting camp' });
+    }
+});
 app.get('/', (req, res) => {
   res.send('🚀 BloodConnect API is running');
 });
+
 
 // Start the server
 app.listen(PORT, () => {
