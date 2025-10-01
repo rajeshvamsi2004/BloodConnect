@@ -20,6 +20,9 @@ import MyRequests from './components/Dashboard/MyRequests';
 import DonorRegistrationForm from './components/Dashboard/DonorRegistrationForm';
 import BloodRequestForm from './components/Dashboard/BloodRequestForm';
 import MapComponent from './MapComponent';
+import Blood from './Blood';
+import BloodCampManager from './BloodCampManager';
+import BloodCampList from './BloodCampList';
 
 function App() {
   return (
@@ -50,6 +53,9 @@ function App() {
             <Route path="accepted" element={<AcceptedRequests />} />
             <Route path="rejected" element={<RejectedRequests />} />
             <Route path="map" element={<MapComponent/>}/>
+            <Route path="blood" element={<Blood/>}/>
+            <Route path="camps" element={<BloodCampManager/>}/>
+            <Route path="camplist" element={<BloodCampList/>}/>
           </Route>
 
           {/* --- Fallback Route --- */}
