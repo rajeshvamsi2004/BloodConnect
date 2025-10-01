@@ -13,7 +13,7 @@ const BloodCampList = () => {
         const fetchCamps = async () => {
             try {
                 // Ensure your backend is running on this port
-                const response = await fetch('http://localhost:4000/api/blood-camps');
+                const response = await fetch('https://blood-connect-orcin.vercel.app/api/blood-camps');
                 const data = await response.json();
                 setCamps(data);
                 setFilteredCamps(data);
