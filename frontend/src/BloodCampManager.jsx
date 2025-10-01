@@ -19,7 +19,8 @@ const BloodCampManager = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [campToDeleteId, setCampToDeleteId] = useState(null);
 
-    const API_URL = 'http://localhost:4000/api/blood-camps';
+   const API_URL = 'https://blood-connect-orcin.vercel.app/api/blood-camps';
+
 
     useEffect(() => {
         if (isPasswordVerified) {
@@ -37,15 +38,16 @@ const BloodCampManager = () => {
         }
     };
 
-    const fetchCamps = async () => {
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            setCamps(data);
-        } catch (error) {
-            console.error("Failed to fetch camps:", error);
-        }
-    };
+   const fetchCamps = async () => {
+    try {
+        // Now this correctly fetches from the /api/blood-camps endpoint
+        const response = await fetch(API_URL); 
+        const data = await response.json();
+        setCamps(data);
+    } catch (error) {
+        console.error("Failed to fetch camps:", error);
+    }
+};
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -76,38 +78,38 @@ const BloodCampManager = () => {
     };
 
     // Step 2: Perform the deletion if confirmed from the modal
-    const confirmDelete = async () => {
-        if (campToDeleteId) {
-            try {
-                await fetch(`${API_URL}/${campToDeleteId}`, { method: 'DELETE' });
-                fetchCamps(); // Refresh the list
-            } catch (error) {
-                console.error("Error deleting camp:", error);
-            } finally {
-                // Close the modal and reset the ID
-                setIsDeleteModalOpen(false);
-                setCampToDeleteId(null);
-            }
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const method = isEditing ? 'PUT' : 'POST';
-        const url = isEditing ? `${API_URL}/${currentCampId}` : API_URL;
+   const confirmDelete = async () => {
+    if (campToDeleteId) {
         try {
-            await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form)
-            });
-            fetchCamps();
-            resetForm();
+            // This now correctly points to .../api/blood-camps/THE_ID
+            await fetch(`${API_URL}/${campToDeleteId}`, { method: 'DELETE' });
+            fetchCamps(); 
         } catch (error) {
-            console.error("Error submitting form:", error);
+            console.error("Error deleting camp:", error);
+        } finally {
+            setIsDeleteModalOpen(false);
+            setCampToDeleteId(null);
         }
-    };
+    }
+};
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const method = isEditing ? 'PUT' : 'POST';
+    // This logic is now correct because API_URL contains the full path
+    const url = isEditing ? `${API_URL}/${currentCampId}` : API_URL; 
+    try {
+        await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(form)
+        });
+        fetchCamps();
+        resetForm();
+    } catch (error) {
+        console.error("Error submitting form:", error);
+    }
+};
     // --- CONDITIONAL RENDERING ---
 
     if (!isPasswordVerified) {
