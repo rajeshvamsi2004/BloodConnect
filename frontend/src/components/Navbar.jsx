@@ -84,7 +84,7 @@ const Navbar = ({ setSidebarOpen }) => {
                                     <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
                                         <div className="py-1">
                                             <NavLink 
-                                                to="dashboard/camps" // Route for adding a camp
+                                                to="/dashboard/camps" // Route for adding a camp
                                                 className={dropdownLinkClasses}
                                                 onClick={() => setCampsDropdownOpen(false)}
                                             >
@@ -142,8 +142,8 @@ const Navbar = ({ setSidebarOpen }) => {
                         
                         {/* --- START: MODIFICATION for Mobile --- */}
                         {/* Replaced the single "Blood Camps" link with two direct links for a better mobile experience */}
-                        <NavLink to="dashboard/camps" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Add Blood Camp</NavLink>
-                        <NavLink to="dashboard/camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>
+                        <NavLink to="/dashboard/camps" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Add Blood Camp</NavLink>
+                        <NavLink to="/dashboard/camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>
                         {/* --- END: MODIFICATION for Mobile --- */}
                         
                         <div className="mt-4 border-t border-gray-200 pt-4">
