@@ -139,13 +139,8 @@ const Navbar = ({ setSidebarOpen }) => {
                         <NavLink to="/dashboard/register-donor" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Register as Donor</NavLink>
                         <NavLink to="/dashboard/make-request" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Request</NavLink>
                         <NavLink to="/request-blood" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Find Bloodbanks</NavLink>
-                        
-                        {/* --- START: MODIFICATION for Mobile --- */}
-                        {/* Replaced the single "Blood Camps" link with two direct links for a better mobile experience */}
                         <NavLink to="/dashboard/camps" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Add Blood Camp</NavLink>
-                        <NavLink to="/dashboard/camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>
-                        {/* --- END: MODIFICATION for Mobile --- */}
-                        
+                        <NavLink to="/dashboard/camplist" className={mobileNavLinkClasses} onClick={() => setMobileMenuOpen(false)}>Blood Camps List</NavLink>                        
                         <div className="mt-4 border-t border-gray-200 pt-4">
                              {isAuthenticated ? (
                                 <Link
