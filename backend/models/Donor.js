@@ -25,4 +25,4 @@ const schema = new mongoose.Schema({
   }
 }, { collection: 'Donor' });
 
-module.exports = mongoose.model("donor", schema);
+module.exports = mongoose.model("Donor", schema);
