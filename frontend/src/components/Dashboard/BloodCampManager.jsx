@@ -19,7 +19,7 @@ const BloodCampManager = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [campToDeleteId, setCampToDeleteId] = useState(null);
 
-    const API_URL = 'http://localhost:4000/api/blood-camps';
+    const API_URL = 'https://blood-connect-orcin.vercel.app/api/blood-camps';
 
     useEffect(() => {
         if (isPasswordVerified) {
