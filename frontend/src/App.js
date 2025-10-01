@@ -21,8 +21,8 @@ import DonorRegistrationForm from './components/Dashboard/DonorRegistrationForm'
 import BloodRequestForm from './components/Dashboard/BloodRequestForm';
 import MapComponent from './MapComponent';
 import Blood from './Blood';
-import BloodCampManager from './BloodCampManager';
-import BloodCampList from './BloodCampList';
+import BloodCampManager from './components/Dashboard/BloodCampManager';
+import BloodCampList from './components/Dashboard/BloodCampList';
 
 function App() {
   return (
